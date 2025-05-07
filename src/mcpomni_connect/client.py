@@ -1,18 +1,11 @@
 import asyncio
-import json
 import os
 from contextlib import AsyncExitStack
-from dataclasses import dataclass, field
 from datetime import timedelta
-from pathlib import Path
-from typing import Any
-
-from dotenv import load_dotenv
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.sse import sse_client
 from mcp.client.stdio import stdio_client
 from mcp.client.websocket import websocket_client
-
 from mcpomni_connect.llm import LLMConnection
 from mcpomni_connect.notifications import handle_notifications
 from mcpomni_connect.refresh_server_capabilities import refresh_capabilities

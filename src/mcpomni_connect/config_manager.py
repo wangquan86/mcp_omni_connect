@@ -15,7 +15,7 @@ class ConfigManager:
     _instance: Optional["ConfigManager"] = None
 
     def __new__(cls, *args, **kwargs):
-        """实现单例模式。"""
+        """singleton pattern"""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance

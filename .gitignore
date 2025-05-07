@@ -13,3 +13,4 @@ servers_config.json
 *.log
 *.log.*
 qdrant_db/
+.vscode/

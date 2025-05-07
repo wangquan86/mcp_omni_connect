@@ -19,41 +19,11 @@ from mcpomni_connect.refresh_server_capabilities import refresh_capabilities
 from mcpomni_connect.sampling import samplingCallback
 from mcpomni_connect.system_prompts import generate_react_agent_role_prompt
 from mcpomni_connect.utils import logger
-
-
-@dataclass
-class Configuration:
-    """Manages configuration and environment variables for the MCP client."""
-
-    llm_api_key: str = field(init=False)
-
-    def __post_init__(self) -> None:
-        """Initialize configuration with environment variables."""
-        self.load_env()
-        self.llm_api_key = os.getenv("LLM_API_KEY")
-
-        if not self.llm_api_key:
-            raise ValueError("LLM_API_KEY not found in environment variables")
-
-    @staticmethod
-    def load_env() -> None:
-        """Load environment variables from .env file."""
-        load_dotenv()
-
-    def load_config(self, file_path: str) -> dict:
-        """Load server configuration from JSON file."""
-        config_path = Path(file_path)
-        logger.info(f"Loading configuration from: {config_path.name}")
-        if config_path.name.lower() != "servers_config.json":
-            raise FileNotFoundError(
-                f"Configuration file not found: {config_path}, it should be 'servers_config.json'"
-            )
-        with open(config_path, encoding="utf-8") as f:
-            return json.load(f)
+from mcpomni_connect.config_manager import ConfigManager
 
 
 class MCPClient:
-    def __init__(self, config: dict[str, Any], debug: bool = False):
+    def __init__(self, config: ConfigManager, debug: bool = False):
         # Initialize session and client objects
         self.config = config
         self.sessions = {}
@@ -65,15 +35,15 @@ class MCPClient:
         self.debug = debug
         self.system_prompt = None
         self.exit_stack = AsyncExitStack()
-        self.llm_connection = LLMConnection(self.config)
+        self.llm_connection = LLMConnection(config)
         self.sampling_callback = samplingCallback()
 
     async def connect_to_servers(self):
         """Connect to an MCP server"""
-        server_config = self.config.load_config("servers_config.json")
+        server_config = self.config.get("mcpServers")
         servers = [
             {"name": name, "srv_config": srv_config}
-            for name, srv_config in server_config["mcpServers"].items()
+            for name, srv_config in server_config.items()
         ]
 
         successful_connections = 0

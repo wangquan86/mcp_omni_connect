@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from openai import OpenAI
 
+from mcpomni_connect.config_manager import ConfigManager
 from mcpomni_connect.utils import logger
 
 load_dotenv()
@@ -13,38 +14,36 @@ OLLAMA_HOST = os.getenv("OLLAMA_HOST")
 
 
 class LLMConnection:
-    def __init__(self, config: dict[str, Any]):
-        self.config = config
+    def __init__(self, config: ConfigManager):
         self.llm_config = None
-        self.openai = OpenAI(api_key=self.config.llm_api_key)
-        self.groq = Groq(api_key=self.config.llm_api_key)
+        self.openai = OpenAI(api_key=config.get("llm_api_key"))
+        self.groq = Groq(api_key=config.get("llm_api_key"))
         self.openrouter = OpenAI(
             base_url="https://openrouter.ai/api/v1",
-            api_key=self.config.llm_api_key,
+            api_key=config.get("llm_api_key"),
         )
         self.gemini = OpenAI(
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-            api_key=self.config.llm_api_key,
+            api_key=config.get("llm_api_key"),
         )
         self.deepseek = OpenAI(
             base_url="https://api.deepseek.com",
-            api_key=self.config.llm_api_key,
+            api_key=config.get("llm_api_key"),
         )
         self.ollama = None
         if not self.llm_config:
             logger.info("updating llm configuration")
-            self.llm_configuration()
+            self.llm_configuration(config)
             logger.info(f"LLM configuration: {self.llm_config}")
 
-    def llm_configuration(self):
+    def llm_configuration(self, config: ConfigManager):
         """Load the LLM configuration"""
-        llm_config = self.config.load_config("servers_config.json")["LLM"]
         try:
-            provider = llm_config.get("provider", "openai")
-            model = llm_config.get("model", "gpt-4o-mini")
-            temperature = llm_config.get("temperature", 0.5)
-            max_tokens = llm_config.get("max_tokens", 5000)
-            top_p = llm_config.get("top_p", 0)
+            provider = config.get("LLM", {}).get("provider", "openai")
+            model = config.get("LLM", {}).get("model", "gpt-4o-mini")
+            temperature = config.get("LLM", {}).get("temperature", 0.5)
+            max_tokens = config.get("LLM", {}).get("max_tokens", 5000)
+            top_p = config.get("LLM", {}).get("top_p", 0)
             self.llm_config = {
                 "provider": provider,
                 "model": model,

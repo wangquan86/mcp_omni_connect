@@ -2,6 +2,7 @@ import json
 from enum import Enum
 from typing import Any
 
+from mcpomni_connect.config_manager import ConfigManager
 from rich import box
 from rich.console import Console
 from rich.markdown import Markdown
@@ -258,15 +259,14 @@ class CommandHelp:
 
 
 class MCPClientCLI:
-    def __init__(self, client: MCPClient, llm_connection: LLMConnection):
+
+    def __init__(
+        self, client: MCPClient, llm_connection: LLMConnection, config: ConfigManager
+    ):
         self.client = client
         self.llm_connection = llm_connection
-        self.agent_config = self.llm_connection.config.load_config(
-            "servers_config.json"
-        )["AgentConfig"]
-        self.MAX_CONTEXT_TOKENS = self.llm_connection.config.load_config(
-            "servers_config.json"
-        )["LLM"]["max_context_length"]
+        self.agent_config = config.get("AgentConfig")
+        self.MAX_CONTEXT_TOKENS = config.get("LLM", {}).get("max_context_length")
         self.USE_MEMORY = {"redis": False, "in_memory": True}
         self.MODE = {"auto": False, "chat": True, "orchestrator": False}
         self.redis_short_term_memory = RedisShortTermMemory(
